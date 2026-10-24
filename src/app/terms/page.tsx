@@ -1,0 +1,2 @@
+import Link from "next/link";
+export default function Terms(){return <main className="legal"><Link href="/">← Sauti</Link><h1>Terms of use</h1><p>This is an early product preview. Sample catalogue names are illustrative, not representations of actual artists or chart positions. YouTube content remains hosted by YouTube and subject to its terms. No licensed audio streaming or paid music access is offered.</p></main>}

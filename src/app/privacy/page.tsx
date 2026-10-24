@@ -1,0 +1,2 @@
+import Link from "next/link";
+export default function Privacy(){return <main className="legal"><Link href="/">← Sauti</Link><h1>Privacy</h1><p>This preview does not use advertising or analytics. If Supabase is configured, account details are processed by that project to provide authentication and artist-profile review. Before public launch, replace this summary with the data controller, purposes, retention periods, user rights, processor details and contact information for the operating countries.</p></main>}

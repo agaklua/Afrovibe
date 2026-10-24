@@ -1,0 +1,3 @@
+import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+export async function GET(){const db=await createClient();if(!db)return NextResponse.json({configured:false,items:[]});const now=new Date();const {data,error}=await db.from("promotional_campaigns").select("id,title,placement,sponsored_label,starts_at,ends_at,artists(name,slug,countries(name))").eq("status","active").limit(50);if(error)return NextResponse.json({error:"Sponsored placements are unavailable."},{status:503});const items=(data||[]).filter((x:{starts_at:string|null;ends_at:string|null})=>(!x.starts_at||new Date(x.starts_at)<=now)&&(!x.ends_at||new Date(x.ends_at)>=now));return NextResponse.json({configured:true,items});}

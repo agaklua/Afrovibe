@@ -1,0 +1,13 @@
+"use client";
+/* YouTube serves remote thumbnails directly; optimization is intentionally left to the provider. */
+/* eslint-disable @next/next/no-img-element */
+import { useEffect, useState } from "react";
+type Video={videoId:string;title:string;channelTitle:string;thumbnail:string;publishedAt:string;videoUrl:string};
+type Result={configured:boolean;message?:string;items:Video[]};
+type SearchState={query:string;data?:Result;error?:string};
+export function YouTubeSearch({query}:{query:string}){
+ const [result,setResult]=useState<SearchState|null>(null);const [selected,setSelected]=useState<Video|null>(null);
+ useEffect(()=>{let cancelled=false;const q=query.trim();if(q.length<2)return;fetch(`/api/youtube/search?q=${encodeURIComponent(q)}`).then(async r=>{const body=await r.json();if(!r.ok)throw new Error(body.error||"Search unavailable");if(!cancelled)setResult({query:q,data:body});}).catch(e=>{if(!cancelled)setResult({query:q,error:e instanceof Error?e.message:"Search unavailable"});});return()=>{cancelled=true;};},[query]);
+ const current=result?.query===query.trim()?result:null;if(!query.trim()||query.trim().length<2)return null;
+ return <section className="video-results" id="official-videos"><p className="section-kicker">OFFICIAL YOUTUBE RESULTS</p><h2>Watch <em>from the source.</em></h2>{current?.error&&<p role="alert">{current.error}</p>}{!current&&<p className="setup-note">Searching eligible official video sources…</p>}{current?.data&&!current.data.configured&&<p className="setup-note">{current.data.message}</p>}{current?.data?.items.length===0&&current.data.configured&&<p>No eligible embeddable videos found for this search.</p>}{current?.data?.items.map(v=><article key={v.videoId} className="video-result"><button className="video-thumb" onClick={()=>setSelected(v)} aria-label={`Play ${v.title} on YouTube`}><img src={v.thumbnail} alt=""/><span>▶</span></button><div><b>{v.title}</b><p>{v.channelTitle}</p><a href={v.videoUrl} target="_blank" rel="noreferrer">Watch on YouTube ↗</a></div></article>)}{selected&&<div className="video-modal" role="dialog" aria-modal="true" aria-label={selected.title}><button className="close-video" onClick={()=>setSelected(null)}>Close ×</button><iframe title={selected.title} src={`https://www.youtube.com/embed/${encodeURIComponent(selected.videoId)}?autoplay=1&rel=0`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen/><a href={selected.videoUrl} target="_blank" rel="noreferrer">{selected.title} · {selected.channelTitle} · View on YouTube</a></div>}</section>;
+}

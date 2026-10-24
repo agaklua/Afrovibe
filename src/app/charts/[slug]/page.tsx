@@ -1,0 +1,7 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { one,rows,type Relation } from "@/lib/supabase/relations";
+type Entry={rank:number;songs:Relation<{id:string;title:string;artists:Relation<{name:string;slug:string}>}>;artists:Relation<{name:string;slug:string}>};
+export default async function ChartDetail({params}:{params:Promise<{slug:string}>}){const {slug}=await params;const db=await createClient();if(!db)notFound();const {data:chart}=await db.from("trending_charts").select("id,name,period_start,period_end,source_note,is_official,countries(name)").eq("slug",slug).eq("published",true).maybeSingle();if(!chart)notFound();const {data:entries}=await db.from("trending_chart_entries").select("rank,songs(id,title,artists(name,slug)),artists(name,slug)").eq("chart_id",chart.id).order("rank");const entryRows=rows<Entry>(entries);return <main className="legal studio"><Link href="/charts">← All charts</Link><p className="section-kicker">{chart.is_official?"OFFICIAL CHART SOURCE":"SAUTI PLATFORM CHART"}</p><h1>{chart.name}</h1><p>{chart.period_start} — {chart.period_end} · {chart.source_note}</p>{!entries?.length&&<p>No chart positions have been published for this period.</p>}<ol className="ranked-list">{entryRows.map((e)=><li key={e.rank}><span>{String(e.rank).padStart(2,"0")}</span><div><b>{one(e.songs)?.title||one(e.artists)?.name||"Entry"}</b><small>{one(one(e.songs)?.artists)?.name||one(e.artists)?.name||""}</small></div></li>)}</ol></main>}
+
